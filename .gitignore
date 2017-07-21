@@ -1,0 +1,11 @@
+### ignore
+
+__tmp/
+.idea/
+nbproject/
+dockerize.zip
+
+### keep
+
+!.gitignore
+!.gitkeep
