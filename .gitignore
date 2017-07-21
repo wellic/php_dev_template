@@ -1,11 +1,16 @@
 ### ignore
 
 __tmp/
-.idea/
-nbproject/
 dockerize.zip
+/dockerize/src/*
 
-### keep
-
+#keep
 !.gitignore
 !.gitkeep
+
+!/dockerize/cli/app.php
+!/dockerize/html/index.html
+!/dockerize/html/info.php
+!/dockerize/netbeans/
+
+
