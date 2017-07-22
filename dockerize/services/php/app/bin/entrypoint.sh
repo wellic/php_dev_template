@@ -47,13 +47,27 @@ _add_web_user() {
         && usermod --append --groups www-data web-user
 }
 
+_install_composer() {
+    local CUR_DIR=$(readlink -e "$PWD")
+
+    cd /sbin
+    if [ ! -e "composer" ]; then
+        bash "$DIR_BIN/get_composer.sh"
+    fi
+    mv composer.phar composer
+    chmod +x composer
+
+    cd "$CUR_DIR"
+}
+
 _do_first_start() {
 
-    # PHP configuration
-    #COPY config_files/php.ini /usr/local/etc/php/
     cp "$DIR_CFG/php.ini" "$DIR_PHP"/
 
     _add_web_user
+    _install_composer
+
+    cd "$CUR_DIR"
 }
 
 _setup_soft() {
@@ -122,3 +136,4 @@ if [ "$DOCKER_DEBUG" = 1 ]; then
     echo '****************************'
 fi
 exec /tmp/docker_run.sh
+
