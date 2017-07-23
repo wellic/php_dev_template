@@ -12,17 +12,17 @@ services:
         expose:
             - "${XDEBUG_PORT:-9000}"
         ports:
-            - "${APP_PORT_HOST:-8080}:80"
+            - "${HOST_PORT_APP:-8080}:80"
         environment:
-            - APP_PORT_HOST=${APP_PORT_HOST:-8080}
+            - HOST_PORT_APP=${HOST_PORT_APP:-8080}
         env_file:
             - .env
             - envs/common.env
         volumes:
             - ./services/php/app:/app
             - ./services/php/ini/zz_xdebug.ini:${DIR_PHP}/conf.d/zz_xdebug.ini
-            - ${DIR_ARC_HOST}:${DIR_ARC}
-            - ${DIR_SRC_HOST}:${DIR_SRC}
-            - ${DIR_DATA_HOST}/html:${DIR_WWW_ROOT}
+            - ${HOST_DIR_ARC}:${DIR_ARC}
+            - ${HOST_DIR_SRC}:${DIR_SRC}
+            - ${HOST_DIR_WEB_ROOT}:${DIR_WEB_ROOT}
         working_dir: "${DIR_SRC}"
         entrypoint: ["/app/bin/entrypoint.sh"]

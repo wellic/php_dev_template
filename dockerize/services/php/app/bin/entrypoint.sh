@@ -2,10 +2,9 @@
 
 set -u
 
-if [ "$DOCKER_DEBUG_SCRIPT" = 1 ]; then
+if [ "$DOCKER_DEBUG_BASH_SCRIPT" = 1 ]; then
     set -x
 fi
-
 
 if [ "$DOCKER_DEBUG" = 1 ]; then
     echo
@@ -14,20 +13,6 @@ if [ "$DOCKER_DEBUG" = 1 ]; then
     echo '****************************'
     date
 fi
-
-DIR_PHP=${DIR_PHP:-/usr/local/etc/php}
-
-DIR_APP=/app
-
-DIR_ARC=${DIR_ARC}
-DIR_SRC=${DIR_SRC}
-DIR_WWW_ROOT=${DIR_WWW_ROOT}
-
-DIR_BIN="$DIR_APP/bin"
-DIR_CFG="$DIR_APP/config_files"
-PLG_DIRNAME=${PLG_DIRNAME:-html}
-DIR_PLG="$DIR_SRC/$PLG_DIRNAME"
-DIR_WWW_PLUGINS=${DIR_WWW_PLUGINS:=$DIR_WWW_ROOT}
 
 _is_first_start() {
     id -g ${DOCKER_GROUP_ID} >/dev/null 2>&1 && return 1 || return 0
@@ -52,7 +37,7 @@ _install_composer() {
 
     cd /sbin
     if [ ! -e "composer" ]; then
-        bash "$DIR_BIN/get_composer.sh"
+        bash "$DIR_APP_BIN/get_composer.sh"
     fi
     mv composer.phar composer
     chmod +x composer
@@ -62,12 +47,9 @@ _install_composer() {
 
 _do_first_start() {
 
-    cp "$DIR_CFG/php.ini" "$DIR_PHP"/
-
     _add_web_user
     _install_composer
 
-    cd "$CUR_DIR"
 }
 
 _setup_soft() {
@@ -78,8 +60,6 @@ _setup_soft() {
         echo '* Setup soft'
         echo '****************************'
     fi
-
-    cp "$DIR_CFG/docker_run.sh" /tmp/
 }
 
 _add_dev_plugins() {
@@ -91,29 +71,26 @@ _add_dev_plugins() {
         echo '**************************'
     fi
 
-    chown -R web-user:web-user "$DIR_WWW_PLUGINS"
+    chown -R web-user:web-user "$DIR_DST_ADD2WEB"
 
-    local plugin
-    local plugins=$(find "$DIR_PLG" -mindepth 1 -maxdepth 1 -exec basename "{}" \;)
-#    local CUR_DIR=$(pwd)
-#    cd "$DIR_WWW_PLUGINS"
-    for plugin in ${plugins[@]} ; do
-        if [ -L "$plugin" -o -d "$plugin" ]; then
-            chown -R web-user:web-user "$plugin"
-            echo "* ! Already exists: $(ls -la "$DIR_WWW_PLUGINS" | grep "$plugin")"
-            continue;
+    local src
+    local mess
+    local plugins=$(find "$DIR_SRC_ADD2WEB" -mindepth 1 -maxdepth 1 )
+    for src in ${plugins[@]} ; do
+        local plugin_name=$(basename "$src")
+        local dst="$DIR_DST_ADD2WEB/$plugin_name"
+        if [ -L "$dst" -o -d "$dst" ]; then
+            mess='* ! Already exists'
+        else
+            mess='* Install dev plugin'
+            make_relative_link "$src" "$dst"
         fi
-        make_relative_link "$DIR_PLG/$plugin" "$DIR_WWW_PLUGINS/$plugin"
-        chown -R web-user:web-user "$plugin"
-        echo "* Install dev plugin: $(ls -la "$DIR_WWW_PLUGINS" | grep "$plugin")"
+        chown -R web-user:web-user "$dst"
+        echo "$mess: $(ls -la "$DIR_DST_ADD2WEB" | grep "$plugin_name")"
     done
-#    cd "$CUR_DIR"
 }
 
 ############## MAIN ###################
-
-
-export PATH="$PATH:$DIR_BIN"
 
 if [ "$DOCKER_DEBUG" = 1 ]; then
     echo
@@ -135,5 +112,5 @@ if [ "$DOCKER_DEBUG" = 1 ]; then
     echo '* docker_run.sh'
     echo '****************************'
 fi
-exec /tmp/docker_run.sh
+exec "${DIR_APP_BIN}/docker_run.sh"
 
