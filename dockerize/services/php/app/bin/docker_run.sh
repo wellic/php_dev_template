@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ "$DOCKER_DEBUG_BASH_SCRIPT" = 1 ]; then
+if [ "$DOCKER_DEBUG_SCRIPTS" = 1 ]; then
     set -x
 fi
 

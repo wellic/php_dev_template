@@ -2,7 +2,7 @@
 
 set -u
 
-if [ "$DOCKER_DEBUG_BASH_SCRIPT" = 1 ]; then
+if [ "$DOCKER_DEBUG_SCRIPTS" = 1 ]; then
     set -x
 fi
 
@@ -60,6 +60,8 @@ _setup_soft() {
         echo '* Setup soft'
         echo '****************************'
     fi
+
+    chown web-user:web-user -R "$DIR_WEB_ROOT"
 }
 
 _add_dev_plugins() {
@@ -71,14 +73,14 @@ _add_dev_plugins() {
         echo '**************************'
     fi
 
-    chown -R web-user:web-user "$DIR_DST_ADD2WEB"
+    chown -R web-user:web-user "$DIR_ADD2WEB_DST"
 
     local src
     local mess
-    local plugins=$(find "$DIR_SRC_ADD2WEB" -mindepth 1 -maxdepth 1 )
+    local plugins=$(find "$DIR_ADD2WEB_SRC" -mindepth 1 -maxdepth 1 )
     for src in ${plugins[@]} ; do
         local plugin_name=$(basename "$src")
-        local dst="$DIR_DST_ADD2WEB/$plugin_name"
+        local dst="$DIR_ADD2WEB_DST/$plugin_name"
         if [ -L "$dst" -o -d "$dst" ]; then
             mess='* ! Already exists'
         else
@@ -86,7 +88,7 @@ _add_dev_plugins() {
             make_relative_link "$src" "$dst"
         fi
         chown -R web-user:web-user "$dst"
-        echo "$mess: $(ls -la "$DIR_DST_ADD2WEB" | grep "$plugin_name")"
+        echo "$mess: $(ls -la "$DIR_ADD2WEB_DST" | grep "$plugin_name")"
     done
 }
 
